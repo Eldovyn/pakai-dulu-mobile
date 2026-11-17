@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { View, Image } from "react-native";
 import { Text } from "@/components/ui/text";
@@ -32,7 +31,7 @@ const slides = [
     },
 ];
 
-const Step1Page = () => {
+const StepPageMobile = () => {
     const router = useRouter();
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -57,7 +56,6 @@ const Step1Page = () => {
         <View className="bg-[#fff7eb] h-screen flex flex-col justify-center items-center">
             <Image
                 source={currentSlide.image}
-                className="w-40 h-40 rounded-xl"
                 resizeMode="cover"
             />
 
@@ -103,4 +101,4 @@ const Step1Page = () => {
     );
 };
 
-export default Step1Page;
+export default StepPageMobile;

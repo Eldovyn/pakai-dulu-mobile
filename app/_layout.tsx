@@ -1,5 +1,8 @@
 import '@/global.css';
-
+import queryClient from '@/lib/queryClient';
+import {
+  QueryClientProvider,
+} from '@tanstack/react-query'
 import { NAV_THEME } from '@/lib/theme';
 import { ThemeProvider } from 'expo-router/react-navigation';
 import { PortalHost } from '@rn-primitives/portal';
@@ -15,16 +18,18 @@ export default function RootLayout() {
   const { colorScheme } = useColorScheme();
 
   return (
-    <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider value={NAV_THEME[colorScheme ?? 'light']}>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
 
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+          }}
+        />
 
-      <PortalHost />
-    </ThemeProvider>
+        <PortalHost />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

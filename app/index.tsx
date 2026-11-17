@@ -1,18 +1,12 @@
 import { useWindowDimensions } from 'react-native';
-import HomeResponsive from '@/responsives/landing/tablet-desktop';
-import HomeMobile from '@/responsives/landing/mobile';
+import LandingResponsive from '@/responsives/landing/tablet-desktop';
+import LandingMobile from '@/responsives/landing/mobile';
 
+export default function Screen() {
+    const { width } = useWindowDimensions();
 
-const SCREEN_OPTIONS = {
-  title: 'React Native Reusables',
-  headerTransparent: true,
-};
-
-export default function Home() {
-  const { width } = useWindowDimensions();
-
-  if (width <= 640) {
-    return <HomeMobile />
-  }
-  return <HomeResponsive />
+    if (width <= 640) {
+        return <LandingMobile />
+    }
+    return <LandingResponsive />
 }

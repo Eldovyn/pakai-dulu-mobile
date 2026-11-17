@@ -15,11 +15,11 @@ import {
 import { Text } from '@/components/ui/text';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Portal } from '@rn-primitives/portal';
 import {
     AlertDialog,
     AlertDialogContent,
     AlertDialogHeader,
-    AlertDialogTitle,
     AlertDialogFooter,
 } from '@/components/ui/alert-dialog';
 import { useRouter } from 'expo-router';
@@ -44,10 +44,13 @@ const formatTime = (seconds: number) => {
     ).padStart(2, '0')}`;
 };
 
+export const PAYMENT_OVERLAY_HOST = 'payment-overlay';
+
 export function QrisPayment({
     id_product,
     id_tx,
     payment_type,
+    embedded,
 }: QrisPaymentProps) {
     const router = useRouter();
     const insets = useSafeAreaInsets();
@@ -189,6 +192,71 @@ export function QrisPayment({
     const sellerName = dataPayment.seller_name ?? 'Pemilik barang';
     const itemName = dataPayment.item_name ?? '-';
     const paymentType = dataPayment.payment_type ?? 'QRIS';
+
+    // Konten dialog sukses (dipakai di AlertDialog native & overlay in-frame)
+    const successContent = (
+        <>
+            <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-green-100">
+                <View className="h-12 w-12 items-center justify-center rounded-full bg-[#16783A]">
+                    <Check size={28} color="white" strokeWidth={3} />
+                </View>
+            </View>
+
+            <AlertDialogHeader className="items-center">
+                <Text className="text-xl font-bold text-gray-800">
+                    Pembayaran Berhasil!
+                </Text>
+            </AlertDialogHeader>
+
+            <View className="my-4 w-full flex-row items-center rounded-xl border border-orange-200 bg-orange-50 p-4">
+                <Hourglass size={20} color="#D97706" />
+                <Text className="ml-3 flex-1 text-sm leading-5 text-orange-700">
+                    Menunggu konfirmasi dari pihak pemilik barang ({sellerName}).
+                </Text>
+            </View>
+
+            {/* Kotak Rincian */}
+            <View className="mb-6 w-full gap-3 rounded-xl bg-gray-100 p-4">
+                <View className="flex-row items-start justify-between">
+                    <Text className="w-1/3 text-sm text-gray-500">
+                        Barang
+                    </Text>
+                    <Text className="flex-1 text-right text-sm font-medium text-gray-800">
+                        {itemName}
+                    </Text>
+                </View>
+
+                <View className="flex-row items-center justify-between">
+                    <Text className="text-sm text-gray-500">
+                        Metode
+                    </Text>
+                    <Text className="text-sm font-medium text-gray-800">
+                        {paymentType}
+                    </Text>
+                </View>
+
+                <View className="flex-row items-center justify-between">
+                    <Text className="text-sm text-gray-500">
+                        Total Bayar
+                    </Text>
+                    <Text className="text-sm font-bold text-[#16783A]">
+                        {formatRupiah(totalPayment)}
+                    </Text>
+                </View>
+            </View>
+
+            <AlertDialogFooter className="w-full">
+                <Button
+                    className="w-full h-12 bg-[#16783A] active:bg-[#16783A] hover:bg-[#16783A] rounded-xl"
+                    onPress={goToHome}
+                >
+                    <Text className="text-base font-bold text-white text-center">
+                        Kembali ke Beranda
+                    </Text>
+                </Button>
+            </AlertDialogFooter>
+        </>
+    );
 
     return (
         <View className="flex-1 bg-gray-50">
@@ -360,7 +428,7 @@ export function QrisPayment({
                 }}
             >
                 <Button
-                    className="h-12 bg-[#16783A] active:bg-[#16783A]"
+                    className="h-12 bg-[#16783A] hover:bg-[#16783A] active:bg-[#16783A]"
                     disabled={isExpired || paid}
                     onPress={handleCheckPayment}
                 >
@@ -372,69 +440,29 @@ export function QrisPayment({
                 </Button>
             </View>
 
-            <AlertDialog open={isDialogVisible} onOpenChange={setIsDialogVisible}>
+            <AlertDialog open={isDialogVisible && !embedded} onOpenChange={setIsDialogVisible}>
                 <AlertDialogContent className="items-center rounded-2xl">
-                    <View className="mb-4 h-20 w-20 items-center justify-center rounded-full bg-green-100">
-                        <View className="h-12 w-12 items-center justify-center rounded-full bg-[#16783A]">
-                            <Check size={28} color="white" strokeWidth={3} />
-                        </View>
-                    </View>
-
-                    <AlertDialogHeader className="items-center">
-                        <AlertDialogTitle className="text-xl font-bold text-gray-800">
-                            Pembayaran Berhasil!
-                        </AlertDialogTitle>
-                    </AlertDialogHeader>
-
-                    <View className="my-4 w-full flex-row items-center rounded-xl border border-orange-200 bg-orange-50 p-4">
-                        <Hourglass size={20} color="#D97706" />
-                        <Text className="ml-3 flex-1 text-sm leading-5 text-orange-700">
-                            Menunggu konfirmasi dari pihak pemilik barang ({sellerName}).
-                        </Text>
-                    </View>
-
-                    {/* Kotak Rincian */}
-                    <View className="mb-6 w-full gap-3 rounded-xl bg-gray-100 p-4">
-                        <View className="flex-row items-start justify-between">
-                            <Text className="w-1/3 text-sm text-gray-500">
-                                Barang
-                            </Text>
-                            <Text className="flex-1 text-right text-sm font-medium text-gray-800">
-                                {itemName}
-                            </Text>
-                        </View>
-
-                        <View className="flex-row items-center justify-between">
-                            <Text className="text-sm text-gray-500">
-                                Metode
-                            </Text>
-                            <Text className="text-sm font-medium text-gray-800">
-                                {paymentType}
-                            </Text>
-                        </View>
-
-                        <View className="flex-row items-center justify-between">
-                            <Text className="text-sm text-gray-500">
-                                Total Bayar
-                            </Text>
-                            <Text className="text-sm font-bold text-[#16783A]">
-                                {formatRupiah(totalPayment)}
-                            </Text>
-                        </View>
-                    </View>
-
-                    <AlertDialogFooter className="w-full">
-                        <Button
-                            className="w-full h-12 bg-[#16783A] active:bg-[#16783A] rounded-xl"
-                            onPress={goToHome}
-                        >
-                            <Text className="text-base font-bold text-white text-center">
-                                Kembali ke Beranda
-                            </Text>
-                        </Button>
-                    </AlertDialogFooter>
+                    {successContent}
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* === OVERLAY IN-FRAME (EMBEDDED) ===
+                Di-render lewat Portal ke level frame (lihat tablet-desktop) supaya
+                dialog menutupi seluruh area frame, bukan hanya area konten. */}
+            {embedded && (
+                <Portal hostName={PAYMENT_OVERLAY_HOST} name="payment-success">
+                    {isDialogVisible && (
+                        <View className="absolute inset-0 z-50 items-center justify-center bg-black/50 p-2">
+                            <View
+                                className="w-full items-center rounded-2xl border border-border bg-background p-6"
+                                style={{ maxWidth: 360 }}
+                            >
+                                {successContent}
+                            </View>
+                        </View>
+                    )}
+                </Portal>
+            )}
         </View>
     );
 }

@@ -4,7 +4,6 @@ import {
     ScrollView,
     Pressable,
     Image,
-    Dimensions,
     NativeSyntheticEvent,
     NativeScrollEvent,
 } from 'react-native';
@@ -12,8 +11,6 @@ import { Text } from '../ui/text';
 import { getCategories } from '@/api/product/product';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight } from 'lucide-react-native';
-
-const SCREEN_WIDTH = Dimensions.get('window').width;
 
 export function CategoryList({
     onSelectCategory,
@@ -58,8 +55,7 @@ export function CategoryList({
 
     return (
         <View
-            style={{ width: SCREEN_WIDTH }}
-            className="relative flex-row items-center overflow-hidden self-center"
+            className="relative flex-row items-center overflow-hidden self-center w-full"
         >
             <ScrollView
                 ref={scrollViewRef}

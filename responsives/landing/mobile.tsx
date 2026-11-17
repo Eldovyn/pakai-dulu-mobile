@@ -3,6 +3,7 @@ import { Text } from '@/components/ui/text';
 import { Stack } from 'expo-router';
 import { View, Image } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 const SCREEN_OPTIONS = {
@@ -12,11 +13,15 @@ const SCREEN_OPTIONS = {
 
 export default function HomeMobile() {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
 
     return (
         <>
             <Stack.Screen options={SCREEN_OPTIONS} />
-            <View className='bg-[#fff7eb] h-screen flex flex-col justify-center items-center w-full'>
+            <View
+                className='bg-[#fff7eb] flex-1 flex-col justify-center items-center w-full'
+                style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+            >
                 <Image
                     source={require('@/assets/images/icon.png')}
                     style={{

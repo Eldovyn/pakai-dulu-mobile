@@ -7,16 +7,19 @@ import {
     Inbox,
     UserRound,
 } from 'lucide-react-native';
-import { Pressable, View } from 'react-native';
+import { Pressable, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
     const insets = useSafeAreaInsets();
     const pathname = usePathname();
+    const { width } = useWindowDimensions();
 
     let hideTabBar = false;
 
-    if (pathname.startsWith('/home/') && pathname !== '/home') {
+    if ((pathname.startsWith('/home/') && pathname !== '/home') || pathname.startsWith('/profile/')) {
+        hideTabBar = true;
+    } else if (width > 640 && (pathname === '/home' || pathname === '/transaction' || pathname === '/cart' || pathname === '/inbox' || pathname === '/profile')) {
         hideTabBar = true;
     } else {
         hideTabBar = false;

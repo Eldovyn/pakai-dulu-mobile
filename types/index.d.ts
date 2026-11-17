@@ -41,6 +41,7 @@ interface QrisPaymentProps {
     id_product?: string;
     id_tx?: string;
     payment_type?: string;
+    embedded?: boolean;
 }
 
 interface PaymentData {

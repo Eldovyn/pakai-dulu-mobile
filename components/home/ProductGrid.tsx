@@ -1,6 +1,5 @@
 import {
     View,
-    FlatList,
     Pressable,
     Image,
 } from 'react-native';
@@ -33,16 +32,17 @@ export function ProductGrid() {
     }
 
     return (
-        <FlatList
-            data={dataProducts ?? []}
-            keyExtractor={(item) => item.id}
-            numColumns={2}
-            scrollEnabled={false}
-            columnWrapperStyle={{ gap: 12 }}
-            contentContainerStyle={{ gap: 12 }}
-            renderItem={({ item }) => (
+        <View
+            style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                justifyContent: 'space-between',
+            }}
+        >
+            {(dataProducts ?? []).map((item: any) => (
                 <Pressable
-                    className="flex-1"
+                    key={item.id}
+                    style={{ width: '48%', marginBottom: 12 }}
                     onPress={() => {
                         router.replace(`/(main)/home/${item.id}`)
                     }}
@@ -89,7 +89,7 @@ export function ProductGrid() {
                         </CardContent>
                     </Card>
                 </Pressable>
-            )}
-        />
+            ))}
+        </View>
     );
 }

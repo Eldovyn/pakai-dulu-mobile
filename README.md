@@ -18,9 +18,13 @@ To run the development server:
     yarn dev
     # or
     pnpm dev
-    # or
-    bun dev
 ```
+
+> **Bun:** use it as a package manager (`bun install`), but run the Expo CLI with
+> Node (`npx expo start`, `npm run dev`, …). Running it with `bun dev` breaks web
+> static rendering because Bun's `Error.captureStackTrace` rejects the error
+> objects built by `axios`/`follow-redirects` (`TypeError: First argument must be
+> an Error object`). The Docker image below follows the same rule.
 
 This will start the Expo Dev Server. Open the app in:
 
@@ -29,6 +33,66 @@ This will start the Expo Dev Server. Open the app in:
 - **Web**: press `w` to run in a browser
 
 You can also scan the QR code using the [Expo Go](https://expo.dev/go) app on your device. This project fully supports running in Expo Go for quick testing on physical devices.
+
+## Docker
+
+Works with both **Docker Compose** and **Podman** (`podman compose`).
+
+Build the images first (the `web` target needs a raised file-descriptor limit, see below):
+
+```bash
+./docker/build.sh          # both targets: dev + web
+./docker/build.sh dev      # Expo dev server only
+./docker/build.sh web      # static web bundle only
+```
+
+Then start the Expo dev server (Metro bundler) plus a static web preview:
+
+```bash
+docker compose up          # or: podman compose up
+```
+
+- Metro bundler / Expo dev server: http://localhost:8081
+- Static web preview (Nginx): http://localhost:8080
+- Legacy dev-tools ports are also published: `19000`, `19001`, `19002`
+
+The terminal is interactive — press `w` to open the web version, `a` for Android, etc. For a physical device, advertise your machine's LAN IP:
+
+```bash
+REACT_NATIVE_PACKAGER_HOSTNAME=192.168.1.10 docker compose up
+```
+
+Start only one service:
+
+```bash
+docker compose up expo   # dev server only
+docker compose up web    # web preview only
+```
+
+The API base URL comes from `.env` (`EXPO_PUBLIC_API_URL`). Override it per-run:
+
+```bash
+EXPO_PUBLIC_API_URL=http://my-api:3000 ./docker/build.sh web && docker compose up web
+```
+
+> **Why a build script instead of `compose build`?**
+>
+> - `expo export` opens many files at once. Buildah (the builder behind
+>   `podman build`) defaults the hard file-descriptor limit to `1024`, which
+>   aborts the web build with
+>   `EMFILE: too many open files … lucide-react-native/…`. `docker/build.sh`
+>   passes `--ulimit nofile=65536:65536` to work around it. Docker's own default
+>   is already high enough.
+> - The `EXPO_PUBLIC_API_URL` value is read from `docker-compose.yml`'s
+>   `${EXPO_PUBLIC_API_URL}` at build time, so the variable needs to be in the
+>   shell environment (or in `.env` for compose) when building.
+
+> **Podman notes**
+>
+> - Image names are fully qualified (`docker.io/...`, `localhost/...`) so no `unqualified-search-registries` config is needed.
+> - Prefer short names instead? Add `unqualified-search-registries = ["docker.io"]` to `~/.config/containers/registries.conf`.
+> - On SELinux hosts the project bind mount uses `:z`; keep it if the container reports `Permission denied`.
+
 
 ## Adding components
 

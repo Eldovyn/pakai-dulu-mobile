@@ -69,6 +69,60 @@ docker compose up expo   # dev server only
 docker compose up web    # web preview only
 ```
 
+### Host ports are already taken?
+
+Every published port can be remapped from the shell — no file edits needed. This
+is what to do when `up` fails with
+`Bind for 0.0.0.0:8080 failed: port is already allocated`:
+
+```bash
+WEB_PORT=8090 docker compose up                 # http://localhost:8090
+METRO_PORT=8091 docker compose up expo          # Metro on 8091 instead
+WEB_PORT=8090 METRO_PORT=8091 docker compose up # both at once
+```
+
+| Variable             | Default  | Service | Purpose                        |
+| -------------------- | -------- | ------- | ------------------------------ |
+| `WEB_PORT`           | `8080`   | web     | Static web preview (Nginx)     |
+| `METRO_PORT`         | `8081`   | expo    | Metro bundler                  |
+| `EXPO_DEV_PORT`      | `19000`  | expo    | Expo dev server                |
+| `EXPO_DEVTOOLS_PORT` | `19001`  | expo    | Expo dev tools                 |
+| `EXPO_WEBUI_PORT`    | `19002`  | expo    | Expo dev tools (web UI)        |
+| `EXPO_CONTAINER_NAME`| `pakdul-mobile-expo` | expo | Container name      |
+| `WEB_CONTAINER_NAME` | `pakdul-mobile-web`  | web  | Container name      |
+
+> Only the **container-internal** ports are fixed; remapping a host port does not
+> change anything the app or Expo expects.
+
+Two things commonly hold these ports:
+
+- **A second checkout of this repo.** The compose file pins `container_name`, so
+  two directories share the same project name (`name: pakdul-mobile`), the same
+  container names, *and* the same host ports. Running `up` in both gives exactly
+  this error. Run only one checkout at a time, or give the second one its own
+  names/ports (table above).
+- **A leftover container or another project on 8080** (e.g. an `adminer`, a
+  `kubo`/IPFS gateway, or anything else bound to 8080).
+
+Find and clear the owner before re-running:
+
+```bash
+ss -ltnp | grep ':8080'                          # host process
+docker ps --filter publish=8080                  # container holding it
+docker compose down --remove-orphans             # drop this project's leftovers
+```
+
+> **If a failed `up` left things broken:** a port conflict can abort *after* the
+> container was created, leaving the rootless port forwarder (`rootlessport`)
+> and the container's network namespace out of sync — the container looks
+> `healthy` and serves fine from `docker exec`, but every request from the host
+> is reset (`curl: (56) Recv failure: Connection reset by peer`). Restart the
+> container to rebuild the forwarder:
+>
+> ```bash
+> docker restart pakdul-mock-api   # or whichever container stops answering
+> ```
+
 The API base URL comes from `.env` (`EXPO_PUBLIC_API_URL`). Override it per-run:
 
 ```bash

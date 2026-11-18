@@ -8,7 +8,10 @@ services:
       target: dev
     # `localhost/` prefix keeps the name unambiguous for Podman (no short-name lookup)
     image: localhost/pakdul-mobile:dev
-    container_name: pakdul-mobile-expo
+    # Overridable so a second checkout of this repo (or another project that
+    # already uses these names) can run side by side:
+    #   EXPO_CONTAINER_NAME=pakdul-mobile-expo-2 podman compose up
+    container_name: ${EXPO_CONTAINER_NAME:-pakdul-mobile-expo}
     environment:
       # API base URL (read from .env, overridable from the shell)
       EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-http://localhost:3000}
@@ -17,10 +20,14 @@ services:
       #   <host LAN IP>  -> physical device on the same network
       REACT_NATIVE_PACKAGER_HOSTNAME: ${REACT_NATIVE_PACKAGER_HOSTNAME:-localhost}
     ports:
-      - "8081:8081" # Metro bundler
-      - "19000:19000" # Expo dev server
-      - "19001:19001" # Expo dev tools
-      - "19002:19002" # Expo dev tools (web UI)
+      # Host ports are overridable: if one is already taken (another container,
+      # another checkout of this repo, a host process), remap it without
+      # editing this file, e.g.
+      #   METRO_PORT=8091 podman compose up
+      - "${METRO_PORT:-8081}:8081" # Metro bundler
+      - "${EXPO_DEV_PORT:-19000}:19000" # Expo dev server
+      - "${EXPO_DEVTOOLS_PORT:-19001}:19001" # Expo dev tools
+      - "${EXPO_WEBUI_PORT:-19002}:19002" # Expo dev tools (web UI)
     volumes:
       # `:z` (shared SELinux relabel) is a no-op on Docker, required on SELinux hosts
       - .:/app:z
@@ -39,9 +46,10 @@ services:
       args:
         EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-http://localhost:3000}
     image: localhost/pakdul-mobile:web
-    container_name: pakdul-mobile-web
+    container_name: ${WEB_CONTAINER_NAME:-pakdul-mobile-web}
     ports:
-      - "8080:80"
+      # See the note on the `expo` service: override when 8080 is taken.
+      - "${WEB_PORT:-8080}:80"
     restart: unless-stopped
 
 volumes:
